@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Registry — Entry Form</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal-50: #E1F5EE; --teal-100: #9FE1CB; --teal-400: #1D9E75;
+    --teal-600: #0F6E56; --teal-800: #085041;
+    --gray-50: #F1EFE8; --gray-100: #D3D1C7; --gray-200: #B4B2A9;
+    --gray-400: #888780; --gray-600: #5F5E5A; --gray-800: #444441; --gray-900: #2C2C2A;
+    --amber-400: #BA7517; --amber-50: #FAEEDA;
+    --purple-50: #EEEDFE; --purple-400: #7F77DD; --purple-800: #3C3489;
+    --bg: #F7F6F2; --surface: #FFFFFF; --border: #D3D1C7; --border-strong: #B4B2A9;
+    --text: #2C2C2A; --text-muted: #5F5E5A; --text-faint: #888780;
+    --accent: #0F6E56; --accent-light: #E1F5EE; --radius: 6px; --radius-lg: 10px;
+  }
+  body { font-family: 'Fraunces', Georgia, serif; font-weight: 300; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .progress-bar { height: 2px; background: var(--border); position: sticky; top: 0; z-index: 20; }
+  .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+  .page-header { background: var(--gray-900); color: #F1EFE8; padding: 1.75rem 3rem; display: flex; align-items: baseline; gap: 1.5rem; border-bottom: 3px solid var(--teal-400); }
+  .page-header h1 { font-size: 1.6rem; font-weight: 500; letter-spacing: -0.02em; font-style: italic; }
+  .page-header .subtitle { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--teal-100); letter-spacing: 0.08em; text-transform: uppercase; }
+  .type-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 3rem; display: flex; align-items: center; gap: 0; position: sticky; top: 2px; z-index: 19; }
+  .type-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); margin-right: 1rem; padding: 0.85rem 0; white-space: nowrap; }
+  .type-tab { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.04em; padding: 0.85rem 1.25rem; cursor: pointer; border: none; background: none; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+  .type-tab:hover { color: var(--text); }
+  .type-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+  .form-container { max-width: 860px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+  .form-intro { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 0.5px solid var(--border); line-height: 1.7; }
+  .section { margin-bottom: 2.25rem; }
+  .section.hidden { display: none; }
+  .section-header { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1rem; padding-bottom: 0.55rem; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; }
+  .section-number { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); background: var(--accent-light); padding: 3px 8px; border-radius: 3px; font-weight: 500; }
+  .section-title { font-size: 1rem; font-weight: 500; color: var(--text); letter-spacing: -0.01em; }
+  .sbadge { font-family: 'DM Mono', monospace; font-size: 0.57rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; font-weight: 500; }
+  .sbadge-m { background: var(--amber-50); color: var(--amber-400); }
+  .sbadge-r { background: var(--purple-50); color: var(--purple-800); }
+  .sbadge-o { background: var(--gray-50); color: var(--gray-600); }
+  .field-grid { display: grid; gap: 0.85rem; }
+  .field-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .field-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.full { grid-column: 1 / -1; }
+  label.field-label { font-family: 'DM Mono', monospace; font-size: 0.67rem; letter-spacing: 0.06em; color: var(--text-muted); text-transform: uppercase; font-weight: 500; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .req { color: var(--accent); font-size: 0.8rem; }
+  .obadge { font-family: 'DM Mono', monospace; font-size: 0.57rem; color: var(--gray-400); background: var(--gray-50); border-radius: 3px; padding: 1px 5px; text-transform: uppercase; font-weight: 400; letter-spacing: 0.03em; }
+  .field-desc { font-family: 'Fraunces', Georgia, serif; font-size: 0.74rem; color: var(--text-faint); line-height: 1.5; }
+  input[type="text"], input[type="url"], input[type="date"], input[type="email"], textarea, select {
+    font-family: 'Fraunces', Georgia, serif; font-weight: 300; font-size: 0.88rem; color: var(--text);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 0.44rem 0.7rem; width: 100%; transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none; -webkit-appearance: none; appearance: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(15,110,86,0.1); }
+  textarea { resize: vertical; min-height: 78px; line-height: 1.6; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23888780' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 0.7rem center; padding-right: 2.2rem; cursor: pointer;
+  }
+  select:disabled { opacity: 0.4; cursor: not-allowed; background-color: var(--gray-50); }
+  .radio-group { display: flex; gap: 0.45rem; }
+  .radio-opt input[type="radio"] { display: none; }
+  .radio-opt label { display: flex; align-items: center; justify-content: center; padding: 0.42rem 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 0.72rem; font-family: 'DM Mono', monospace; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); transition: all 0.12s; white-space: nowrap; }
+  .radio-opt input[type="radio"]:checked + label { background: var(--accent-light); border-color: var(--accent); color: var(--teal-800); }
+  .check-group { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+  .check-opt input[type="checkbox"] { display: none; }
+  .check-opt label { display: flex; align-items: center; justify-content: center; padding: 0.42rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 0.75rem; font-family: 'DM Mono', monospace; letter-spacing: 0.03em; color: var(--text-muted); transition: all 0.12s; }
+  .check-opt input[type="checkbox"]:checked + label { background: var(--accent-light); border-color: var(--accent); color: var(--teal-800); }
+  .ssbd-block { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface); }
+  .ssbd-head { background: var(--gray-50); border-bottom: 1px solid var(--border); padding: 0.6rem 1rem; display: flex; align-items: center; }
+  .ssbd-head-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); font-weight: 500; }
+  .ssbd-body { padding: 1rem; display: grid; gap: 0.8rem; }
+  .ssbd-cascade { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+  .notice { background: var(--amber-50); border-left: 3px solid var(--amber-400); border-radius: 0 var(--radius) var(--radius) 0; padding: 0.55rem 0.85rem; font-size: 0.79rem; color: var(--gray-800); margin-bottom: 0.85rem; line-height: 1.5; }
+  .keyword-tags { display: flex; flex-wrap: wrap; gap: 5px; padding: 0.32rem 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); min-height: 35px; cursor: text; }
+  .keyword-tags:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(15,110,86,0.1); }
+  .kw-tag { display: inline-flex; align-items: center; gap: 4px; background: var(--accent-light); color: var(--teal-800); font-family: 'DM Mono', monospace; font-size: 0.65rem; padding: 2px 7px; border-radius: 3px; }
+  .kw-tag button { background: none; border: none; cursor: pointer; color: var(--teal-600); font-size: 0.85rem; line-height: 1; padding: 0; display: flex; align-items: center; }
+  .keyword-tags input { border: none; outline: none; font-family: 'Fraunces', Georgia, serif; font-size: 0.88rem; color: var(--text); min-width: 100px; flex: 1; background: transparent; padding: 0; box-shadow: none; }
+  .chem-entry { display: grid; grid-template-columns: 22px 1fr 1fr; gap: 0.55rem; align-items: end; }
+  .chem-idx { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--text-faint); text-align: center; padding-bottom: 0.5rem; }
+  .url-wrap { position: relative; }
+  .url-pre { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--text-faint); pointer-events: none; }
+  .url-wrap input { padding-left: 2.35rem; }
+  .form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 1.75rem; border-top: 1px solid var(--border); margin-top: 1.25rem; }
+  .btn { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.05em; font-weight: 500; padding: 0.55rem 1.4rem; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; text-transform: uppercase; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border-strong); color: var(--text-muted); }
+  .btn-ghost:hover { background: var(--gray-50); border-color: var(--gray-400); }
+  .btn-primary { background: var(--gray-900); border: 1px solid var(--gray-900); color: #F1EFE8; }
+  .btn-primary:hover { background: var(--gray-800); }
+  .btn-primary:active { transform: scale(0.98); }
+  @media (max-width: 640px) {
+    .page-header { padding: 1.25rem 1rem; flex-direction: column; gap: 0.4rem; }
+    .type-bar { padding: 0 1rem; overflow-x: auto; }
+    .form-container { padding: 1.25rem 1rem 3rem; }
+    .field-grid.cols-2, .field-grid.cols-3, .ssbd-cascade { grid-template-columns: 1fr; }
+    .chem-entry { grid-template-columns: 22px 1fr; }
+    .chem-entry .field:last-child { grid-column: 2; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<header class="page-header">
+  <h1>Model Registry</h1>
+  <span class="subtitle">PINK Knowledge Base — Entry Form</span>
+</header>
+
+<div class="type-bar">
+  <span class="type-label">Entry type:</span>
+  <button class="type-tab active" data-type="software" onclick="switchType('software')">Software / Computation Tool</button>
+  <button class="type-tab" data-type="dataset" onclick="switchType('dataset')">Dataset</button>
+</div>
+
+<div class="form-container">
+  <p class="form-intro">Register a new entry in the PINK Knowledge Base. <span class="sbadge sbadge-m">mandatory</span> fields must be completed before submission. <span class="sbadge sbadge-r">recommended</span> fields are strongly encouraged. Toggle the entry type above — some fields are type-specific.</p>
+
+  <form id="registryForm" novalidate>
+
+    <!-- 01 BASIC INFO -->
+    <section class="section" data-show="both">
+      <div class="section-header">
+        <span class="section-number">01</span>
+        <span class="section-title">Basic information</span>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label class="field-label" for="identifier">Identifier <span class="obadge">optional</span></label>
+          <input type="text" id="identifier" name="identifier" placeholder="e.g. datasettype:ChemicalStructureDataset">
+          <p class="field-desc">For software: existing IRI or local ID. For datasets: CamelCase with prefix <em>datasettype:</em>. Software will receive a PINK-assigned IRI on entry.</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="title">Title <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <input type="text" id="title" name="title" placeholder="Short descriptive name">
+        </div>
+        <div class="field full">
+          <label class="field-label" for="description">Description <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <textarea id="description" name="description" placeholder="One or two sentences describing the purpose, scope, and methodology…" rows="3"></textarea>
+        </div>
+        <div class="field dataset-only hidden full">
+          <label class="field-label" for="label">Label <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <input type="text" id="label" name="label" placeholder="Human-readable label (rdfs:label)">
+        </div>
+        <div class="field full">
+          <label class="field-label">Keyword <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <div class="keyword-tags" id="keywordTags" onclick="document.getElementById('kw-input').focus()">
+            <input type="text" id="kw-input" placeholder="Type keyword, press Enter or ;" autocomplete="off">
+          </div>
+          <input type="hidden" id="keywords" name="keywords">
+          <p class="field-desc">Free-text. Separate keywords with <em>;</em> — press Enter or semicolon to confirm each one. Use <em>theme</em> if you have controlled vocabulary IRIs.</p>
+        </div>
+        <div class="field full dataset-only hidden">
+          <label class="field-label" for="theme">Theme <span class="obadge">optional</span></label>
+          <input type="text" id="theme" name="theme" placeholder='e.g. https://w3id.org/pink#AdvancedMaterial; https://w3id.org/pink#SSbD'>
+          <p class="field-desc">Controlled vocabulary IRI(s) — semicolon-separated. Use instead of (or alongside) keywords when referencing ontology concepts.</p>
+        </div>
+        <div class="field dataset-only hidden">
+          <label class="field-label" for="scopeNote">Scope note <span class="obadge">optional</span></label>
+          <textarea id="scopeNote" name="scopeNote" placeholder="Clarifying note about the concept's meaning or use…" rows="2"></textarea>
+        </div>
+        <div class="field dataset-only hidden">
+          <label class="field-label" for="subClassOf">Subclass of <span class="obadge">optional</span></label>
+          <input type="text" id="subClassOf" name="subClassOf" placeholder="e.g. datasettype:PollutionDataset">
+          <p class="field-desc">If this dataset is a type of another previously described dataset.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 CLASSIFICATION -->
+    <section class="section" data-show="both">
+      <div class="section-header">
+        <span class="section-number">02</span>
+        <span class="section-title">Classification &amp; context</span>
+      </div>
+      <div class="field-grid cols-2">
+        <div class="field software-only">
+          <label class="field-label" for="inputDatasetType">Input dataset type <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <input type="text" id="inputDatasetType" name="inputDatasetType" placeholder="e.g. datasettype:ChemicalStructureDataset">
+          <p class="field-desc">Identifier of the dataset type used as input. Link to the Dataset Type sheet.</p>
+        </div>
+        <div class="field software-only">
+          <label class="field-label" for="outputDatasetType">Output dataset type <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <input type="text" id="outputDatasetType" name="outputDatasetType" placeholder="e.g. datasettype:ToxicityPredictionDataset">
+          <p class="field-desc">Identifier of the dataset type generated as output.</p>
+        </div>
+        <div class="field software-only">
+          <label class="field-label" for="isSubmoduleOf">Is submodule of <span class="obadge">optional</span></label>
+          <input type="text" id="isSubmoduleOf" name="isSubmoduleOf" placeholder="e.g. software:QSARToolbox">
+          <p class="field-desc">Relate this module to its parent software package.</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="indicator">Indicator <span class="obadge">optional</span></label>
+          <input type="text" id="indicator" name="indicator" placeholder="e.g. LC50, NOEC, BCF, GWP100">
+          <p class="field-desc">Specific output property or datum — simplifies complex realities into a measurable value.</p>
+        </div>
+        <div class="field software-only full">
+          <label class="field-label">Tier level <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <div class="check-group">
+            <div class="check-opt"><input type="checkbox" id="tier1" name="tierLevel" value="1"><label for="tier1">1 — Ideation / design</label></div>
+            <div class="check-opt"><input type="checkbox" id="tier2" name="tierLevel" value="2"><label for="tier2">2 — Lab phase / development</label></div>
+            <div class="check-opt"><input type="checkbox" id="tier3" name="tierLevel" value="3"><label for="tier3">3 — Up-scaling / production</label></div>
+          </div>
+          <p class="field-desc">Indicates at which stage(s) of development this software is relevant. Select all that apply.</p>
+        </div>
+        <div class="field software-only full">
+          <label class="field-label" for="modelType">Model type <span class="obadge">optional</span></label>
+          <select id="modelType" name="modelType">
+            <option value="">— select —</option>
+            <option>QSAR</option>
+            <option>PBPK</option>
+            <option>Molecular Dynamics</option>
+            <option>Random Forest</option>
+            <option>Neural Network</option>
+            <option>Deep Learning</option>
+            <option>Read-across</option>
+            <option>Rule-based</option>
+            <option>Statistical</option>
+            <option>Hybrid</option>
+            <option>Other</option>
+          </select>
+          <p class="field-desc">The mathematical or modelling approach implemented (implements <em>pink:implementsModel</em>).</p>
+        </div>
+        <div class="field dataset-only hidden">
+          <label class="field-label" for="format">Format <span class="obadge">optional</span></label>
+          <input type="text" id="format" name="format" placeholder="e.g. text/csv, application/json">
+          <p class="field-desc">File format or physical medium — prefer MIME types where available.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 CHEMICAL CLASS (software only) -->
+    <section class="section software-only" data-show="software">
+      <div class="section-header">
+        <span class="section-number">03</span>
+        <span class="section-title">Chemical classification</span>
+        <span class="sbadge sbadge-m">mandatory</span>
+      </div>
+      <p class="field-desc" style="margin-bottom:0.75rem">Group(s) of chemicals this software is relevant for — subclass of <em>pink:Matter</em>. Add up to three.</p>
+      <div style="display:flex;flex-direction:column;gap:0.55rem;">
+        <div class="chem-entry"><span class="chem-idx">1</span>
+          <div class="field"><label class="field-label" for="chem1n">Class name</label><input type="text" id="chem1n" name="chem1n" placeholder="e.g. Nanomaterial"></div>
+          <div class="field"><label class="field-label" for="chem1i">IRI / identifier</label><input type="text" id="chem1i" name="chem1i" placeholder="e.g. CHEBI:50803"></div>
+        </div>
+        <div class="chem-entry"><span class="chem-idx">2</span>
+          <div class="field"><label class="field-label" for="chem2n">Class name</label><input type="text" id="chem2n" name="chem2n" placeholder="e.g. Metal oxide"></div>
+          <div class="field"><label class="field-label" for="chem2i">IRI / identifier</label><input type="text" id="chem2i" name="chem2i" placeholder="e.g. CHEBI:25213"></div>
+        </div>
+        <div class="chem-entry"><span class="chem-idx">3</span>
+          <div class="field"><label class="field-label" for="chem3n">Class name</label><input type="text" id="chem3n" name="chem3n" placeholder="e.g. Organic compound"></div>
+          <div class="field"><label class="field-label" for="chem3i">IRI / identifier</label><input type="text" id="chem3i" name="chem3i" placeholder="e.g. CHEBI:72695"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 SSbD -->
+    <section class="section" data-show="both">
+      <div class="section-header">
+        <span class="section-number">04</span>
+        <span class="section-title">SSbD assessment</span>
+        <span class="sbadge sbadge-m">mandatory</span>
+      </div>
+      <div class="notice">Safe and Sustainable by Design (SSbD) framework. Select the dimension and drill into sub-dimensions using the cascading dropdowns. Add multiple assessments if needed.</div>
+      <div id="ssbdEntries" style="display:flex;flex-direction:column;gap:0.85rem;"></div>
+      <button type="button" class="btn btn-ghost" onclick="addSsbd()" style="margin-top:0.75rem;font-size:0.67rem;">+ Add another assessment</button>
+    </section>
+
+    <!-- 05 DOCUMENTATION (software) -->
+    <section class="section software-only" data-show="software">
+      <div class="section-header">
+        <span class="section-number">05</span>
+        <span class="section-title">Documentation &amp; URLs</span>
+      </div>
+      <div class="field-grid">
+        <div class="field full">
+          <label class="field-label" for="documentation">Documentation URL <span class="obadge">optional</span></label>
+          <div class="url-wrap"><span class="url-pre">https://</span><input type="url" id="documentation" name="documentation" placeholder="example.org/docs"></div>
+          <p class="field-desc">URL where documentation related to the software can be accessed (<em>pink:documentation</em>).</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="accessURL">Access URL <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <div class="url-wrap"><span class="url-pre">https://</span><input type="url" id="accessURL" name="accessURL" placeholder="example.org/model"></div>
+          <p class="field-desc">Landing page for downloading or running the software (<em>dcat:accessURL</em>). Either this or download URL must be provided.</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="downloadURL">Download URL <span class="obadge">optional</span></label>
+          <div class="url-wrap"><span class="url-pre">https://</span><input type="url" id="downloadURL" name="downloadURL" placeholder="example.org/model/download"></div>
+          <p class="field-desc">Direct download link (<em>dcat:distribution.downloadURL</em>).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 ACCESS & CAPABILITIES (software) -->
+    <section class="section software-only" data-show="software">
+      <div class="section-header">
+        <span class="section-number">06</span>
+        <span class="section-title">Access &amp; capabilities</span>
+      </div>
+      <div class="field-grid cols-2">
+        <div class="field">
+          <label class="field-label">Has API <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" id="api_y" name="hasAPI" value="Yes"><label for="api_y">Yes</label></div>
+            <div class="radio-opt"><input type="radio" id="api_n" name="hasAPI" value="No"><label for="api_n">No</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Has GUI <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" id="gui_y" name="hasGUI" value="Yes"><label for="gui_y">Yes</label></div>
+            <div class="radio-opt"><input type="radio" id="gui_n" name="hasGUI" value="No"><label for="gui_n">No</label></div>
+          </div>
+        </div>
+        <div class="field full">
+          <label class="field-label" for="accessRights">Access rights <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <select id="accessRights" name="accessRights">
+            <option value="">— select —</option>
+            <option value="PUBLIC">PUBLIC</option>
+            <option value="NON_PUBLIC">NON_PUBLIC</option>
+            <option value="RESTRICTED">RESTRICTED</option>
+            <option value="CONFIDENTIAL">CONFIDENTIAL</option>
+            <option value="SENSITIVE">SENSITIVE</option>
+          </select>
+          <p class="field-desc">EU access-right controlled vocabulary (<em>dcterms:accessRights</em>). See <em>op.europa.eu/eu-vocabularies</em> for definitions.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 RIGHTS & LICENSING (software) -->
+    <section class="section software-only" data-show="software">
+      <div class="section-header">
+        <span class="section-number">07</span>
+        <span class="section-title">Rights &amp; licensing</span>
+      </div>
+      <div class="field-grid cols-2">
+        <div class="field full">
+          <label class="field-label" for="creator">Creator <span class="obadge">optional</span></label>
+          <input type="text" id="creator" name="creator" placeholder="e.g. Jane Smith; Acme Institute">
+          <p class="field-desc">Person(s) or partner(s) that created the software. Separate multiple entries with <em>;</em>.</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="rightsHolder">Rights holder <span class="sbadge sbadge-r">recommended</span></label>
+          <input type="text" id="rightsHolder" name="rightsHolder" placeholder="Organisation or person">
+          <p class="field-desc">Person or institution owning or managing intellectual property rights (<em>dcterms:rightsholder</em>).</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="license">License <span class="obadge">optional</span></label>
+          <select id="license" name="license">
+            <option value="">— select license —</option>
+            <optgroup label="Creative Commons">
+              <option>CC BY 4.0</option><option>CC BY-SA 4.0</option>
+              <option>CC BY-NC 4.0</option><option>CC BY-NC-SA 4.0</option><option>CC0 1.0</option>
+            </optgroup>
+            <optgroup label="Open source">
+              <option>MIT</option><option>Apache 2.0</option>
+              <option>GPL v3</option><option>LGPL v3</option>
+              <option>BSD 2-Clause</option><option>BSD 3-Clause</option>
+            </optgroup>
+            <optgroup label="Other">
+              <option>Proprietary</option><option>Other</option>
+            </optgroup>
+          </select>
+          <p class="field-desc">Will become mandatory during the project. See <em>opensource.org</em> or <em>creativecommons.org</em>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 RELEASE (software) -->
+    <section class="section software-only" data-show="software">
+      <div class="section-header">
+        <span class="section-number">08</span>
+        <span class="section-title">Release information</span>
+      </div>
+      <div class="field-grid cols-3">
+        <div class="field">
+          <label class="field-label" for="version">Version <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+          <input type="text" id="version" name="version" placeholder="e.g. 2.1.0">
+        </div>
+        <div class="field">
+          <label class="field-label" for="releaseDate">Release date <span class="obadge">optional</span></label>
+          <input type="date" id="releaseDate" name="releaseDate">
+          <p class="field-desc">Format: YYYY-MM-DD</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="priorRelease">Prior release <span class="obadge">optional</span></label>
+          <input type="text" id="priorRelease" name="priorRelease" placeholder="IRI of previous release">
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 DATUM (dataset only) -->
+    <section class="section dataset-only hidden" data-show="dataset">
+      <div class="section-header">
+        <span class="section-number">05</span>
+        <span class="section-title">Datum / property definition</span>
+        <span class="sbadge sbadge-o">optional</span>
+      </div>
+      <div class="notice">Describe individual data properties in your dataset. Leave empty if you reference an external data model via <em>datamodelIRI</em>.</div>
+      <div class="field-grid cols-2">
+        <div class="field full">
+          <label class="field-label" for="datamodelIRI">Data model IRI <span class="obadge">optional</span></label>
+          <input type="text" id="datamodelIRI" name="datamodelIRI" placeholder="IRI of externally defined data model">
+          <p class="field-desc">If provided, the datum fields below can be left empty.</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="datumName">Datum name <span class="obadge">optional</span></label>
+          <input type="text" id="datumName" name="datumName" placeholder="e.g. particleSize">
+          <p class="field-desc">Variable name — no spaces.</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="datumType">Datum type <span class="obadge">optional</span></label>
+          <select id="datumType" name="datumType">
+            <option value="">— select —</option>
+            <option>bool</option><option>int</option><option>int32</option><option>int64</option>
+            <option>float</option><option>float32</option><option>float64</option><option>string</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="datumUnit">Datum unit <span class="obadge">optional</span></label>
+          <input type="text" id="datumUnit" name="datumUnit" placeholder="e.g. nm, mg/L — leave empty if dimensionless">
+        </div>
+        <div class="field">
+          <label class="field-label" for="datumShape">Datum shape <span class="obadge">optional</span></label>
+          <input type="text" id="datumShape" name="datumShape" placeholder="e.g. rows,columns — empty if scalar">
+          <p class="field-desc">Comma-separated dimension names for multi-dimensional properties.</p>
+        </div>
+        <div class="field full">
+          <label class="field-label" for="datumDescription">Datum description <span class="obadge">optional</span></label>
+          <textarea id="datumDescription" name="datumDescription" placeholder="Human-readable description of this property…" rows="2"></textarea>
+        </div>
+        <div class="field full">
+          <label class="field-label" for="datumMapping">Datum mapping <span class="obadge">optional</span></label>
+          <input type="text" id="datumMapping" name="datumMapping" placeholder="IRI(s) of ontology concept(s) defining this property">
+        </div>
+      </div>
+    </section>
+
+    <!-- 09/10 CURATOR (both) -->
+    <section class="section" data-show="both">
+      <div class="section-header">
+        <span class="section-number">09</span>
+        <span class="section-title">Curator</span>
+        <span class="sbadge sbadge-o">optional</span>
+      </div>
+      <div class="field-grid cols-2">
+        <div class="field">
+          <label class="field-label" for="curatorName">Curator name</label>
+          <input type="text" id="curatorName" name="curatorName" placeholder="Full name">
+          <p class="field-desc">Person who documented this entry in the registry spreadsheet (<em>ddoc:curator</em>).</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="curatorEmail">Curator email</label>
+          <input type="email" id="curatorEmail" name="curatorEmail" placeholder="name@institution.org">
+        </div>
+        <div class="field">
+          <label class="field-label" for="curatorOrg">Organisation</label>
+          <input type="text" id="curatorOrg" name="curatorOrg" placeholder="Institution name">
+        </div>
+        <div class="field">
+          <label class="field-label" for="curatorOrcid">ORCID iD</label>
+          <input type="text" id="curatorOrcid" name="curatorOrcid" placeholder="0000-0000-0000-0000">
+        </div>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" onclick="clearForm()">Clear form</button>
+      <button type="button" class="btn btn-ghost" onclick="exportJSON()">Export JSON</button>
+      <button type="submit" class="btn btn-primary">Submit entry ↗</button>
+    </div>
+  </form>
+</div>
+
+<script>
+// SSbD taxonomy
+const SSBD = {
+  "Functionality Assessment": {
+    "Mechanical Properties Assessment": ["Bulk Modulus Assessment","Young's Modulus Assessment","Poisson's Ratio Assessment"],
+    "Thermal Properties Assessment": ["Glass Transition Temperature Assessment"],
+    "Physical Properties Assessment": ["Density Assessment"]
+  },
+  "Safety Assessment": {
+    "Intrinsic Chemical Hazard Assessment": ["Flammability Assessment","Oxidising Properties Assessment"],
+    "Human Health Risk Assessment": ["HHRA Indoor Air Pollution","HHRA Chemical Substances","HHRA Water Pollution","HHRA Air Pollution","HHRA Soil Pollution"],
+    "Environmental Risk Assessment": ["Terrestrial Toxicity","Aquatic Toxicity Marine","Sediment Toxicity","Aquatic Toxicity Freshwater"],
+    "Hazard Assessment Human Health": ["Reproductive Toxicity Assessment","Hazard Characterisation Human Health","Hazard Identification Human Health","Immunotoxicity Assessment","Neurotoxicity Assessment","Non-genotoxic Carcinogenicity Assessment","Acute Toxicity Assessment","Genotoxicity Assessment","Mutagenicity Assessment","Skin and Respiratory Sensitisation","Prenatal Developmental Toxicity Assessment","Endocrine Toxicity Assessment","Carcinogenicity Assessment","Developmental Neurotoxicity Assessment","Hepatotoxicity Assessment","Renal Toxicity Assessment","Irritation and Corrosion"],
+    "Exposure Assessment Environment": ["Soil Quality Assessment","Ambient Air Quality Assessment","Water Quality Assessment","Biodegradability Assessment","Bioaccumulation Assessment"],
+    "Exposure Assessment Human Health": [],
+    "Hazard Assessment Environment": ["Hazard Characterisation Environment"],
+    "Hazard Identification Environment": []
+  },
+  "Environmental Sustainability Assessment": {
+    "Life Cycle Assessment Impact Category": ["Marine Eutrophication Impact Category","Terrestrial Eutrophication Impact Category","Stratospheric Ozone Layer Depletion Impact Category","Human Noncarcinogenic Toxicity Impact Category","Acidification Impact Category","Global Warming Potential (GWP 100) Impact Category","Freshwater Aquatic Ecotoxicity Impact Category","Marine Aquatic Ecotoxicity Impact Category","Human Carcinogenic Toxicity Impact Category","Photochemical ozone formation Impact Category","Freshwater Eutrophication Impact Category"],
+    "Energy Consumption Assessment": ["Renewable Energy Consumption Assessment","Fossil Fuel Energy Consumption Assessment"],
+    "Minerals Resource Assessment": [],
+    "Land Use": [],
+    "Fossil Fuel Resource Scarcity": [],
+    "Water Resource Assessment": [],
+    "Biodiversity Assessment": []
+  },
+  "Social Sustainability Assessment": {
+    "Worker Social Responsibility": ["Working Hours","Fair Renumeration"],
+    "Occupational Health and Safety assessment": ["Occupational Non-fatal Injuries Rate","Safe Working Conditions Assessment"]
+  },
+  "Economic Sustainability Assessment": {
+    "Externalities Assessment": ["Social Externalities Assessment","Environmental Externalities Assessment"]
+  }
+};
+
+let n = 0;
+function addSsbd() {
+  n++;
+  const id = n;
+  const c = document.getElementById('ssbdEntries');
+  const d = document.createElement('div');
+  d.className = 'ssbd-block'; d.id = 'se' + id;
+  d.innerHTML = `<div class="ssbd-head"><span class="ssbd-head-label">Assessment ${id}</span>${id > 1 ? `<button type="button" onclick="rmSsbd(${id})" style="margin-left:auto;background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--text-faint);letter-spacing:0.03em;padding:0;">Remove</button>` : ''}</div>
+  <div class="ssbd-body">
+    <div class="ssbd-cascade">
+      <div class="field"><label class="field-label" for="s${id}l1">Dimension <span class="req">✦</span></label>
+        <select id="s${id}l1" name="ssbd${id}_l1" onchange="upL2(${id})">
+          <option value="">— select dimension —</option>
+          ${Object.keys(SSBD).map(k=>`<option>${k}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label class="field-label" for="s${id}l2">Sub-dimension</label>
+        <select id="s${id}l2" name="ssbd${id}_l2" onchange="upL3(${id})" disabled><option value="">— select first —</option></select>
+      </div>
+      <div class="field"><label class="field-label" for="s${id}l3">Sub-sub-dimension</label>
+        <select id="s${id}l3" name="ssbd${id}_l3" disabled><option value="">— select first —</option></select>
+      </div>
+    </div>
+    <div class="field"><label class="field-label" for="s${id}desc">SSbD description <span class="req">✦</span> <span class="sbadge sbadge-m">mandatory</span></label>
+      <textarea id="s${id}desc" name="ssbd${id}_desc" rows="2" placeholder="Free text — e.g. 'Functionality: increase in mechanical strength' or 'Safety: assessing carcinogenic risk'…"></textarea>
+    </div>
+  </div>`;
+  c.appendChild(d);
+  updateProgress();
+}
+function rmSsbd(id) { const el = document.getElementById('se'+id); if (el) el.remove(); updateProgress(); }
+function upL2(id) {
+  const l1 = document.getElementById('s'+id+'l1').value;
+  const l2 = document.getElementById('s'+id+'l2');
+  const l3 = document.getElementById('s'+id+'l3');
+  l2.innerHTML = '<option value="">— select —</option>';
+  l3.innerHTML = '<option value="">— select first —</option>'; l3.disabled = true;
+  if (l1 && SSBD[l1]) {
+    Object.keys(SSBD[l1]).forEach(k => { const o = document.createElement('option'); o.textContent = k; l2.appendChild(o); });
+    l2.disabled = false;
+  } else { l2.disabled = true; }
+  updateProgress();
+}
+function upL3(id) {
+  const l1 = document.getElementById('s'+id+'l1').value;
+  const l2 = document.getElementById('s'+id+'l2').value;
+  const l3 = document.getElementById('s'+id+'l3');
+  l3.innerHTML = '<option value="">— select —</option>';
+  const opts = (l1 && l2 && SSBD[l1] && SSBD[l1][l2]) ? SSBD[l1][l2] : [];
+  if (opts.length) {
+    opts.forEach(k => { const o = document.createElement('option'); o.textContent = k; l3.appendChild(o); });
+    l3.disabled = false;
+  } else { l3.disabled = true; }
+  updateProgress();
+}
+addSsbd();
+
+// Type switching
+function switchType(type) {
+  document.querySelectorAll('.type-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+  document.querySelectorAll('.software-only').forEach(el => el.classList.toggle('hidden', type !== 'software'));
+  document.querySelectorAll('.dataset-only').forEach(el => el.classList.toggle('hidden', type !== 'dataset'));
+  document.querySelectorAll('.section[data-show]').forEach(s => {
+    const show = s.dataset.show;
+    s.classList.toggle('hidden', show !== 'both' && show !== type);
+  });
+  let num = 1;
+  document.querySelectorAll('.section:not(.hidden) .section-number').forEach(el => el.textContent = String(num++).padStart(2,'0'));
+  updateProgress();
+}
+
+// Keywords
+const kws = [];
+function renderKws() {
+  const wrap = document.getElementById('keywordTags'), inp = document.getElementById('kw-input');
+  wrap.querySelectorAll('.kw-tag').forEach(el => el.remove());
+  kws.forEach((k,i) => {
+    const t = document.createElement('span'); t.className = 'kw-tag';
+    t.innerHTML = k + `<button type="button" onclick="rmKw(${i})">×</button>`;
+    wrap.insertBefore(t, inp);
+  });
+  document.getElementById('keywords').value = kws.join(';');
+  updateProgress();
+}
+function rmKw(i) { kws.splice(i,1); renderKws(); }
+document.getElementById('kw-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ';') { e.preventDefault(); const v = this.value.trim().replace(/;$/,''); if (v && !kws.includes(v)) kws.push(v); this.value = ''; renderKws(); }
+  if (e.key === 'Backspace' && !this.value && kws.length) { kws.pop(); renderKws(); }
+});
+document.getElementById('kw-input').addEventListener('blur', function() { const v = this.value.trim(); if (v) { kws.push(v); this.value = ''; renderKws(); } });
+
+// Progress
+function updateProgress() {
+  const fields = document.querySelectorAll('.section:not(.hidden) input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]), .section:not(.hidden) textarea, .section:not(.hidden) select');
+  let filled = 0;
+  fields.forEach(f => { if (f.value && f.value.trim()) filled++; });
+  document.getElementById('progress').style.width = Math.round((filled / Math.max(fields.length,1)) * 100) + '%';
+}
+document.querySelectorAll('input, textarea, select').forEach(el => { el.addEventListener('input', updateProgress); el.addEventListener('change', updateProgress); });
+
+function clearForm() {
+  if (!confirm('Clear all form data?')) return;
+  document.getElementById('registryForm').reset();
+  kws.length = 0; renderKws();
+  document.getElementById('ssbdEntries').innerHTML = ''; n = 0; addSsbd();
+  updateProgress();
+}
+function exportJSON() {
+  const data = {};
+  new FormData(document.getElementById('registryForm')).forEach((v,k) => {
+    if (/^ssbd\d/.test(k) || k === 'tierLevel') return;
+    data[k] = v;
+  });
+  data.keywords = kws;
+  const tiers = []; document.querySelectorAll('input[name="tierLevel"]:checked').forEach(e => tiers.push(e.value)); data.tierLevel = tiers;
+  const a = document.querySelector('input[name="hasAPI"]:checked'); data.hasAPI = a ? a.value : '';
+  const g = document.querySelector('input[name="hasGUI"]:checked'); data.hasGUI = g ? g.value : '';
+  data.chemicalClasses = [1,2,3].map(i => ({name: data['chem'+i+'n']||'', id: data['chem'+i+'i']||''})).filter(c => c.name||c.id);
+  [1,2,3].forEach(i => { delete data['chem'+i+'n']; delete data['chem'+i+'i']; });
+  data.ssbdAssessments = [];
+  document.querySelectorAll('[id^="se"]').forEach(entry => {
+    const id = entry.id.replace('se','');
+    data.ssbdAssessments.push({
+      dimension: document.getElementById('s'+id+'l1')?.value||'',
+      subDimension: document.getElementById('s'+id+'l2')?.value||'',
+      subSubDimension: document.getElementById('s'+id+'l3')?.value||'',
+      description: document.getElementById('s'+id+'desc')?.value||''
+    });
+  });
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a2 = document.createElement('a'); a2.href = URL.createObjectURL(blob);
+  a2.download = (data.identifier||'registry_entry') + '.json'; a2.click();
+}
+document.getElementById('registryForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const title = document.getElementById('title').value.trim();
+  if (!title) { alert('Please provide at least a Title before submitting.'); return; }
+  const id = document.getElementById('identifier').value.trim();
+  alert('Entry submitted.\n\n' + (id ? 'Identifier: '+id+'\n' : '') + 'Title: '+title);
+});
+switchType('software');
+</script>
+</body>
+</html>
